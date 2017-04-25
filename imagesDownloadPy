@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+import requests
+import os
+import bs4
+import sys
+
+
+
+if len(sys.argv) !=2:
+    print("usage: %s URL" %(sys.argv[1]))
+    sys.exit(0)
+
+
+url = str(sys.argv[1])
+
+#verifica se a pasta existe se não existe, ela é criada
+os.makedirs('PAST_DOWNLOAD', exist_ok=True)
+
+print('Fazendo download das imagens%s...' % url)
+res = requests.get(url)
+res.raise_for_status()
+
+soup = bs4.BeautifulSoup(res.text)
+postElem = soup.select('a img')
+if postElem == []:
+    print('Nao foram encontradas nenhuma imagem para o destino...')
+else:
+    for i in range(0, len(postElem)):
+        postUrl = 'http:' + postElem[i].get('src')
+        print('Fazendo download da imagem %s...' % (postUrl))
+        res = requests.get(postUrl)
+        res.raise_for_status()
+        imageFile = open(os.path.join('PAST_DOWNLOAD', os.path.basename(postUrl)), 'wb')
+        for chunk in res.iter_content(1000000):
+            imageFile.write(chunk)
+        imageFile.close()
+
+print('FINISHED !!.')
